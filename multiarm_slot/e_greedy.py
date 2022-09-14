@@ -8,7 +8,7 @@ if __name__ == "__main__":
     multiarm_slot = get_multiarm_slot()
 
     N_STATES = 15
-    N_ITER = 10000
+    N_ITER = 1000
     EPSILON = 0.1
 
     q = [0.] * N_STATES
