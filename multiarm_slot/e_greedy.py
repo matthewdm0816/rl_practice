@@ -18,8 +18,8 @@ if __name__ == "__main__":
     EPSILON = 0.1
 
     q = [0.] * N_STATES
-    n = [0] * N_STATES
-
+    n = [0] * N_STATES  
+    r_total = 0.
     for _ in range(N_ITER):
         # random choose
         if random.random() <= EPSILON:
@@ -30,5 +30,7 @@ if __name__ == "__main__":
         r = multiarm_slot.generate(a)
         n[a] += 1
         q[a] += (r - q[a]) / n[a]
+        r_total += r
 
     print(f"Estimated Q-values: {q}")
+    print(f"Average Reward: {r_total / sum(n)}")
