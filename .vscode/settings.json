@@ -1,0 +1,8 @@
+{
+    "python.analysis.autoSearchPaths": true,
+    "python.analysis.extraPaths": [
+        "multiarm_slot/"
+    ],
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.typeCheckingMode": "basic"
+}

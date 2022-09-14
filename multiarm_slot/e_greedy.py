@@ -1,4 +1,4 @@
-from multiarm_slot import get_multiarm_slot, argmax
+from multiarm_slot import *
 import random
 from typing import List
 
@@ -14,6 +14,8 @@ if __name__ == "__main__":
     q = [0.] * N_STATES
     n = [0] * N_STATES  
     r_total = 0.
+    r_history = []
+
     for _ in range(N_ITER):
         # random choose
         if random.random() <= EPSILON:
@@ -25,6 +27,8 @@ if __name__ == "__main__":
         n[a] += 1
         q[a] += (r - q[a]) / n[a]
         r_total += r
+        r_history.append(r)
 
+    plot_reward_history(r_history, "e_greedy")
     print(f"Estimated Q-values: {q}")
     print(f"Average Reward: {r_total / sum(n)}")

@@ -19,5 +19,13 @@ def argmax(values: List[float]):
             max_val, max_ind = val, idx
     return max_ind, max_val
 
+def plot_reward_history(reward_history: List[float], name: str):
+    from matplotlib import pyplot as plt
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(reward_history)
+    
+    fig.savefig(name, dpi=500)
+
 if __name__ == "__main__":
     print(get_multiarm_slot().generate(7))
