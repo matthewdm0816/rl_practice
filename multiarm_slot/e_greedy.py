@@ -12,7 +12,7 @@ if __name__ == "__main__":
     EPSILON = 0.1
 
     r_histories = []
-    for _ in range(10):
+    for _ in range(100):
         q = [0.] * N_STATES
         n = [0] * N_STATES  
         r_total = 0.

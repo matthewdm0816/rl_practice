@@ -12,7 +12,7 @@ if __name__ == "__main__":
     C = 0.5
 
     r_histories = []
-    for _ in range(10):
+    for _ in range(100):
         q = np.zeros(N_STATES)
         n = np.zeros(N_STATES)
         r_total = 0.

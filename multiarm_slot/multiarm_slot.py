@@ -39,22 +39,17 @@ def plot_reward_history(reward_history: List[float], name: str):
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
-    # reward_history_np = np.array(reward_history, dtype=np.float32)
-    # window_avg: np.ndarray = np.zeros_like(reward_history_np)
-    # WINDOW_SIZE = 5
-    # for k in range(1, WINDOW_SIZE + 1):
-    #     window_avg += np.concatenate((reward_history_np[k:], np.zeros(k)))
-    # for k in range(-WINDOW_SIZE, 0):
-    #     window_avg += np.concatenate((np.zeros(-k), reward_history_np[:k]))
-    # window_avg += reward_history_np
-    # window_avg /= (2. * WINDOW_SIZE) + 1
     window_avg = window_average(reward_history)
-
     ax.plot(window_avg)
     
     fig.savefig(name, dpi=500)
     
-    
+def compute_mean_std(rewards):
+    # rewards: [N, T]
+    mean = np.mean(rewards, axis=0) # [T]
+    # rewards_t = np.transpose(rewards) # [T, N]
+    std = np.sum((rewards - mean) ** 2, axis=0) / (rewards.shape[1] - 1)
+    return mean, std
 
 if __name__ == "__main__":
     print(get_multiarm_slot().generate(7))
