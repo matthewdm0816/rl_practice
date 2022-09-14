@@ -1,7 +1,7 @@
 from multiarm_slot import get_multiarm_slot, argmax
 import random
 from typing import List
-
+import numpy as np
 
 if __name__ == "__main__":
 
@@ -9,17 +9,16 @@ if __name__ == "__main__":
 
     N_STATES = 15
     N_ITER = 10000
-    EPSILON = 0.1
+    C = 0.5
 
-    q = [0.] * N_STATES
-    n = [0] * N_STATES  
+    q = np.zeros(N_STATES)
+    n = np.zeros(N_STATES)
     r_total = 0.
+
     for _ in range(N_ITER):
         # random choose
-        if random.random() <= EPSILON:
-            a = random.choice(range(N_STATES))
-        else:
-            a, _ = argmax(q)
+        upper_bound = a + C * (n.sum().log() / n).sqrt()
+        a, _ = argmax(upper_bound)
 
         r = multiarm_slot.generate(a)
         n[a] += 1
