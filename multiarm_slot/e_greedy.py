@@ -9,7 +9,7 @@ if __name__ == "__main__":
 
     N_STATES = 15
     N_ITER = 1000
-    EPSILON = 0.1
+    EPSILON = 0.05
 
     r_histories = []
     for _ in range(100):

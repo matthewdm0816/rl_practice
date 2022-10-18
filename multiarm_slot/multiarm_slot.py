@@ -43,6 +43,18 @@ def plot_reward_history(reward_history: List[float], name: str):
     ax.plot(window_avg)
     
     fig.savefig(name, dpi=500)
+
+def window_average_ndim(xs):
+    window_avg: np.ndarray = np.zeros_like(xs)
+    zeros = np.zeros_like(xs)
+    WINDOW_SIZE = 2
+    for k in range(1, WINDOW_SIZE + 1):
+        window_avg += np.concatenate((xs[:,k:], zeros[:,:k]), axis=1)
+    for k in range(-WINDOW_SIZE, 0):
+        window_avg += np.concatenate((zeros[:,:-k], xs[:, :k]), axis=1)
+    window_avg += xs
+    window_avg /= (2. * WINDOW_SIZE) + 1
+    return window_avg[:, :-WINDOW_SIZE]
     
 def compute_mean_std(rewards):
     # rewards: [N, T]
