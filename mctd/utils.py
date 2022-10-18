@@ -1,3 +1,4 @@
+from unittest import expectedFailure
 import numpy as np
 import copy
 import random
@@ -85,6 +86,8 @@ class CliffStatesv2:
         if x == 1:
             if y == self.w:
                 return 0
+            elif y == 1:
+                return -1
             else:
                 return -100
 
@@ -289,7 +292,7 @@ class CliffStatesOffPolicyPolicyIterationEpsGreedy(CliffStatesv2):
 
         if begin is not None and until_end:
             return xs, ys, actions
-        
+
         return xs, ys, actions, bs
 
     def update_policy(self, r: float, x: int, y: int, a: int, iw: float):
@@ -336,6 +339,12 @@ class CliffStatesTD0Sarsa(CliffStatesEpsGreedy):
         self.terminal = (1, w)
 
     def init_values(self):
+        # self.q_values = {
+        #     (i, j, a): random.random()-10
+        #     for a in range(4)
+        #     for i in range(1, self.h + 1)
+        #     for j in range(1, self.w + 1)
+        # }
         super().init_values()
         for a in range(4):
             self.q_values[(*self.terminal, a)] = 0
@@ -347,7 +356,9 @@ class CliffStatesTD0Sarsa(CliffStatesEpsGreedy):
             r + self.gamma * self.q_values[next_state_action] - self.q_values[(x, y, a)]
         )
 
-    def sample_route(self, until_end=True, begin=None, update=False, return_rewards=False):
+    def sample_route(
+        self, until_end=True, begin=None, update=False, return_rewards=False
+    ):
         xs, ys, actions, rewards = [], [], [], []
 
         if begin is not None:
@@ -356,7 +367,7 @@ class CliffStatesTD0Sarsa(CliffStatesEpsGreedy):
             x, y = random.choice(range(1, self.h + 1)), random.choice(
                 range(1, self.w + 1)
             )
-        
+
         ok_mask = self.get_ok_mask(x, y)
         action = self.sample_action(ok_mask, x, y)
         # total_steps = 1
@@ -369,6 +380,8 @@ class CliffStatesTD0Sarsa(CliffStatesEpsGreedy):
             #     return [None] * 3
             if (x, y) == self.terminal:
                 break
+            if len(xs) > 2_000:
+                break
             # sample next action
             x_, y_ = tuple_add((x, y), self.SHIFTS[action])
             if x_ == 1 and 1 < y_ < self.w:
@@ -379,47 +392,60 @@ class CliffStatesTD0Sarsa(CliffStatesEpsGreedy):
                 self.update_policy(reward, x, y, action, (x_, y_, action_))
 
             x, y, action = x_, y_, action_
-        
+
         if return_rewards:
             return xs, ys, actions, rewards
         else:
             return xs, ys, actions
-    
 
     def random_walk(self) -> float:
         _, _, _, rewards = self.sample_route(update=True, return_rewards=True)
         r = 0
-        for i in range(len(rewards)-1,-1,-1):
-            rewards[i] = self.gamma * rewards[i] + r 
+        for i in range(len(rewards) - 1, -1, -1):
+            rewards[i] = self.gamma * rewards[i] + r
             r = rewards[i]
         return rewards[0]
 
-class CliffStatesTD0ExpectedSarsa(CliffStatesTD0Sarsa):
-    def __init__(self, h, w, gamma=0.9, eps_policy=1, alpha=0.1, eps_sampler=0.05):
+
+class CliffStatesTD0MixedExpectedSarsa(CliffStatesTD0Sarsa):
+    def __init__(self, h, w, gamma=0.9, eps_policy=0.05, alpha=0.1, eps_sampler=0.05):
         super().__init__(h, w, gamma, eps_sampler, alpha)
         self.eps_policy = eps_policy
+        self.global_step = 0
+        # self._update_policy = self.update_policy
 
     def update_policy(
         self, r: float, x: int, y: int, a: int, next_state_action: Tuple[int, int, int]
     ):
+        if self.global_step < 500:
+            super().update_policy(r, x, y, a, next_state_action)
+            return
         x_, y_, a_ = next_state_action
         ok_mask = self.get_ok_mask(x_, y_)
         total_as = sum(ok_mask)
         q_values = np.array([self.q_values[(x_, y_, a)] for a in range(4)])
+        q_values[ok_mask] = 0
+        probs = (q_values - np.min(q_values))
+        probs = probs / np.sum(probs)
+        # maxa = np.argmax(q_values)
+        # # assert a == maxa
 
-        maxa = np.argmax(q_values)
-        # assert a == maxa
-
-        probs = np.ones(4) * (self.eps_policy / total_as)
-        probs[maxa] += 1 - self.eps_policy
-        probs[ok_mask] = 0
+        # probs = np.ones(4) * (self.eps_policy / total_as)
+        # probs[maxa] += 1 - self.eps_policy
+        # probs[ok_mask] = 0
         # print(probs)
         expected_q = float(np.sum(q_values * probs))
-        print(expected_q)
+        # print(expected_q)
         # expected_q = self.q_values[next_state_action]
         self.q_values[(x, y, a)] += self.alpha * (
             r + self.gamma * expected_q - self.q_values[(x, y, a)]
         )
+
+    def random_walk(self) -> float:
+        result = super().random_walk()
+        self.global_step += 1
+        return result
+
 
 def run_exp(args):
     rw_class, H, W, STEPS = args
@@ -429,9 +455,8 @@ def run_exp(args):
     for step in range(STEPS):
         rw = states.random_walk()
         round_rewards.append(rw)
+        # print(step)
 
     states.show_policy()
     print("-" * 20)
     return round_rewards
-
-

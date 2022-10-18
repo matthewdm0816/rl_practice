@@ -5,22 +5,22 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 from concurrent.futures import ProcessPoolExecutor, wait
 H, W = 4, 12
-STEPS = 1_000
+STEPS = 50_000
 TOTAL_EXPERIMENTS = 100
 RW_CLASSES = [
-    CliffStatesTD0ExpectedSarsa,
-
     CliffStatesv2,
     CliffStatesEpsGreedy,
     CliffStatesOffPolicyPolicyIterationEpsGreedy,
     CliffStatesTD0Sarsa,
+    # CliffStatesTD0MixedExpectedSarsa,
 ]
 NAMES = [
     "On-policy MCES",
     "On-policy MC $\\varepsilon$-greedy",
     "Off-policy MC Policy Iteration",
     "TD(0) Sarsa",
-    "TD(0) Expected Sarsa",
+    # "TD(0) Expected Sarsa (Mixed, first 10 steps normal Sarsa)",
+    # "TD(0) Expected Sarsa (max 2000 steps/round)",
 ]
 rr_records = {}
 window_size = STEPS // 20
@@ -55,7 +55,7 @@ if __name__ == "__main__":
         )
         rr_records[name] = (rr_mean, rr_std)
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(10, 5))
     ax = fig.add_subplot(111)
     clrs = sns.color_palette("husl", 5)
     with sns.axes_style("darkgrid"):
@@ -70,7 +70,7 @@ if __name__ == "__main__":
             )
     legends = []
     for name in rr_records.keys():
-        legends.append(f"{name}, mean over {TOTAL_EXPERIMENTS} times")
+        legends.append(f"{name}, {TOTAL_EXPERIMENTS} times avg")
         # legends.append(f"{name}, 0.1 std")
         legends.append("_nolegend_")
     ax.legend(legends, loc="lower right")
