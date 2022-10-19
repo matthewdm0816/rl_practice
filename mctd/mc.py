@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 from concurrent.futures import ProcessPoolExecutor, wait
 H, W = 4, 12
-STEPS = 50_000
+STEPS = 10_000
 TOTAL_EXPERIMENTS = 100
 RW_CLASSES = [
     CliffStatesv2,
